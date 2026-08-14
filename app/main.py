@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 
-app = FastAPI(title="Agent Economy Engine API")
+app = FastAPI(title="Agent Economy Engine - P2P Platform")
 
 @app.on_event("startup")
 async def on_startup():
@@ -17,4 +17,8 @@ app.include_router(escrow.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Agent Economy Engine PoC is running"}
+    return {
+        "message": "Agent Economy Engine PoC is running",
+        "model": "P2P Decentralized Payment Model",
+        "docs": "/docs"
+    }

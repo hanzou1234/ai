@@ -11,4 +11,5 @@ class Transaction(Base):
     platform_fee = Column(Float)
     seller_net_payout = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    type = Column(String) # ESCROW_DEPOSIT, PAYOUT, REFUND
+    # type: ESCROW_DEPOSIT (old), PLATFORM_FEE (P2P model), PAYOUT (old)
+    type = Column(String, default="PLATFORM_FEE")
