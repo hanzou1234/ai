@@ -6,7 +6,8 @@ from sqlalchemy import Column, String, DateTime, Boolean, Enum as SQLEnum
 from sqlalchemy.orm import declarative_base
 
 from app.database import Base
-
+from pydantic import BaseModel, ConfigDict
+from typing import Optional
 
 class KYCStatus(str, Enum):
     """KYC verification status states."""
@@ -17,6 +18,13 @@ class KYCStatus(str, Enum):
     REJECTED = "rejected"         # 却下
     EXPIRED = "expired"           # 期限切れ
 
+class KYCStatusSchema(str, Enum):
+    PENDING = "pending"
+    SUBMITTED = "submitted"
+    UNDER_REVIEW = "under_review"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
 
 class UserConsent(Base):
     """User's agreement to terms and privacy policy."""
@@ -89,3 +97,18 @@ class KYCRecord(Base):
             not self.aml_flagged and 
             self.stripe_connected_account_id is not None
         )
+
+class KYCRecordSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    user_id: str
+    stripe_connected_account_id: Optional[str] = None
+    stripe_verification_status: Optional[str] = None
+    status: KYCStatusSchema
+    sanctions_checked: bool = False
+    aml_flagged: bool = False
+    notes: Optional[str] = None
+    verification_date: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime

@@ -79,7 +79,8 @@ class KYCService:
     async def verify_from_stripe(
         self,
         user_id: str,
-        stripe_status: str,  # "verified", "pending", "rejected"
+        stripe_status: str,  # "VERIFIED", "PENDING", "UNDER_REVIEW", "REJECTED" など、KYCStatusに合わせた文字列
+        stripe_connected_account_id: str, # 新しく追加
         notes: str = None
     ) -> KYCRecord:
         """
@@ -93,15 +94,21 @@ class KYCService:
             raise ValueError(f"KYC record not found for user {user_id}")
         
         # Map Stripe status to our KYCStatus
-        if stripe_status == "verified":
-            kyc_record.status = KYCStatus.VERIFIED
-            kyc_record.verification_date = datetime.utcnow()
-        elif stripe_status == "rejected":
-            kyc_record.status = KYCStatus.REJECTED
-        else:  # pending, under_review
-            kyc_record.status = KYCStatus.UNDER_REVIEW
+        status_map = {
+            "VERIFIED": KYCStatus.VERIFIED,
+            "PENDING": KYCStatus.PENDING,
+            "UNDER_REVIEW": KYCStatus.UNDER_REVIEW,
+            "REJECTED": KYCStatus.REJECTED,
+            "EXPIRED": KYCStatus.EXPIRED # Stripeでexpiredになる可能性も考慮
+        }
         
-        kyc_record.stripe_verification_status = stripe_status
+        new_status = status_map.get(stripe_status, KYCStatus.PENDING) # マッピングにない場合はPENDING
+        
+        kyc_record.status = new_status
+        kyc_record.stripe_verification_status = stripe_status # Stripeからの生ステータスも保持
+        kyc_record.stripe_connected_account_id = stripe_connected_account_id # ConnectアカウントIDも更新
+        if new_status == KYCStatus.VERIFIED:
+            kyc_record.verification_date = datetime.utcnow()
         if notes:
             kyc_record.notes = notes
         kyc_record.updated_at = datetime.utcnow()

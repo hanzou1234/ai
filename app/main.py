@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database import init_db
-from app.routers import registry, escrow, legal
+from app.routers import registry, escrow, legal, stripe, kyc # 新しく追加
 from app.config import settings
 import logging
 
@@ -15,6 +15,8 @@ async def on_startup():
 app.include_router(registry.router)
 app.include_router(escrow.router)
 app.include_router(legal.router)
+app.include_router(stripe.router, prefix="/stripe", tags=["Stripe Webhook"]) # 新しく追加
+app.include_router(kyc.router, prefix="/kyc", tags=["KYC & Onboarding"]) # 新しく追加
 
 @app.get("/")
 async def root():
