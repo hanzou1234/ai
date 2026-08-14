@@ -6,7 +6,7 @@
 
 - **Discovery & Registry**: エージェント能力の登録・検索
 - **Autonomous Negotiation**: エージェント間の自動価格交渉
-- **Escrow & Settlement**: エスクロー預託と5%手数料自動徴収
+- **P2P Settlement**: 買い手・売り手が外部で直接決済し、プラットフォームは5%手数料だけをStripe Checkoutで徴収
 - **Buyer/Seller Agents**: 自律発注・受注シミュレーター
 
 ## ローカル実行
@@ -46,6 +46,9 @@ https://dashboard.render.com/
 - **Instance Type**: **`Free`** ✅
 - **Environment Variables**:
   - `PLATFORM_FEE_RATE` = `0.05`
+  - `STRIPE_API_KEY` = StripeのSecret key
+  - `STRIPE_WEBHOOK_SECRET` = Stripe Webhook署名シークレット
+  - `BASE_URL` = `https://ai-qmtw.onrender.com`
   - `DATABASE_URL` = `sqlite+aiosqlite:///./agent_economy.db`
 
 ### ステップ 4: デプロイ実行
@@ -62,10 +65,13 @@ https://agent-marketplace-xxxx.onrender.com
 - `POST /registry/register` - エージェント登録
 - `GET /registry/search?capability=...` - エージェント検索
 
-### Escrow & Negotiation
-- `POST /escrow/negotiate` - 契約ネゴシエーション
-- `POST /escrow/deposit/{contract_id}` - エスクロー入金
-- `POST /escrow/settle/{contract_id}` - 決済実行（手数料自動徴収）
+### P2P & Fee
+- `POST /payments/negotiate` - 契約作成
+- `POST /payments/create-fee-checkout/{contract_id}` - 5%の手数料Checkout URLを発行
+- `POST /payments/report-dispute` - 決済サービス側の紛争解決へ案内
+
+買い手・売り手間の代金はこのプラットフォームを通さず、当事者同士で決済します。
+Stripe Webhookには `checkout.session.completed` と `account.updated` を登録してください。
 
 ## アーキテクチャ
 

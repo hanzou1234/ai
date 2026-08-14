@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Header, HTTPException
 import stripe
 from app.config import settings
 from app.services.kyc import KYCService # KYCServiceをインポート
+from app.services.escrow import P2PPaymentService
 from app.database import AsyncSessionLocal # session_factoryをインポート
 
 router = APIRouter()
@@ -51,5 +52,15 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
     elif event['type'] == 'payment_intent.succeeded':
         payment_intent = event['data']['object']
         print(f"PaymentIntent succeeded: {payment_intent['id']}")
+    elif event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        if session.get('metadata', {}).get('type') == 'platform_fee':
+            async with AsyncSessionLocal() as db:
+                await P2PPaymentService.record_platform_fee_payment(
+                    db,
+                    session['metadata']['contract_id'],
+                    session['id'],
+                    (session.get('amount_total') or 0) / 100,
+                )
     
     return {"status": "success"}

@@ -1,70 +1,56 @@
 import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.agent import Agent
 from app.models.contract import Contract, ContractStatus
 from app.models.transaction import Transaction
-from app.config import settings
+from app.services.payment_stripe import StripePaymentService
 
 class P2PPaymentService:
     """P2P決済サービス：バイヤー↔セラー直接決済、プラットフォームは手数料のみ徴収"""
 
     @staticmethod
-    async def create_payment_link(db: AsyncSession, contract_id: str):
-        """セラー向けの支払いリンク生成（Stripe Invoiceなど）"""
+    async def create_platform_fee_checkout(db: AsyncSession, contract_id: str):
+        """売買代金には触れず、プラットフォーム手数料だけを請求する。"""
         result = await db.execute(select(Contract).where(Contract.id == contract_id))
         contract = result.scalar_one_or_none()
         if not contract:
             raise ValueError("Contract not found")
 
-        # バイヤーがセラーに直接支払うためのリンクを生成
-        # 実装例：Stripe Payment Link, PayPal Invoice等
-        payment_data = {
-            "contract_id": contract_id,
-            "seller_id": contract.seller_id,
-            "buyer_id": contract.buyer_id,
-            "amount": contract.agreed_price,
+        if contract.status not in (ContractStatus.ESCROWED, ContractStatus.EXECUTING):
+            raise ValueError("Fee checkout is available after contract acceptance")
+
+        session = await StripePaymentService.create_platform_fee_checkout(
+            contract.id, contract.seller_id, contract.agreed_price
+        )
+        return {
+            "checkout_url": session.url,
+            "checkout_session_id": session.id,
+            "platform_fee": StripePaymentService.calculate_platform_fee(contract.agreed_price),
             "currency": "USD",
-            "description": f"Task: {contract.task_description}"
+            "buyer_seller_payment": "outside_platform",
         }
-        return payment_data
 
     @staticmethod
-    async def record_payment_completion(db: AsyncSession, contract_id: str):
-        """支払い完了：セラーから手数料を徴収"""
+    async def record_platform_fee_payment(db: AsyncSession, contract_id: str, session_id: str, amount: float):
+        """Stripe webhookでプラットフォーム手数料の支払いだけを記録する。"""
         result = await db.execute(select(Contract).where(Contract.id == contract_id))
         contract = result.scalar_one_or_none()
-        if not contract or contract.status != ContractStatus.EXECUTING:
+        if not contract:
             raise ValueError("Invalid contract state")
 
-        gross_amount = contract.agreed_price
-        fee_rate = settings.PLATFORM_FEE_RATE
-        min_fee = settings.MINIMUM_PLATFORM_FEE
-        
-        # 手数料計算：最小手数料を適用
-        calculated_fee = round(gross_amount * fee_rate, 2)
-        platform_fee = max(calculated_fee, min_fee)
+        existing = await db.get(Transaction, session_id)
+        if existing:
+            return existing
 
-        # セラーから手数料を徴収（ウォレットから）
-        seller_result = await db.execute(select(Agent).where(Agent.id == contract.seller_id))
-        seller = seller_result.scalar_one()
-        
-        if seller.wallet_balance < platform_fee:
-            raise ValueError("Seller insufficient balance for platform fee")
-        
-        seller.wallet_balance -= platform_fee
-
-        # 取引記録：プラットフォーム手数料のみ
         tx = Transaction(
-            id=str(uuid.uuid4()),
+            id=session_id,
             contract_id=contract_id,
-            gross_amount=gross_amount,
-            platform_fee=platform_fee,
+            gross_amount=contract.agreed_price,
+            platform_fee=amount,
             seller_net_payout=0.0,  # P2P決済なので0（セラーは直接受け取り）
-            type="PLATFORM_FEE"
+            type="PLATFORM_FEE_STRIPE"
         )
         db.add(tx)
-        contract.status = ContractStatus.COMPLETED
         await db.commit()
         return tx
 

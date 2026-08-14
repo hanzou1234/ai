@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     PLATFORM_FEE_RATE: float = 0.05
     MINIMUM_PLATFORM_FEE: float = 1.0  # 最低手数料 $1
     LOG_LEVEL: str = "INFO"
+    BASE_URL: str = "https://ai-qmtw.onrender.com"
 
     # Stripe configuration
     STRIPE_API_KEY: str = os.getenv("STRIPE_API_KEY", "")
