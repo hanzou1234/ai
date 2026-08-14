@@ -5,6 +5,7 @@ pydantic-settings
 sqlalchemy
 aiosqlite
 python-dotenv
+stripe
 httpx
 pytest
 pytest-asyncio
