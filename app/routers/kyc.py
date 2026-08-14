@@ -10,7 +10,7 @@ from app.models.kyc import KYCRecord, KYCRecordSchema, KYCStatus # KYCRecordSche
 router = APIRouter()
 stripe.api_key = settings.STRIPE_API_KEY
 
-@router.post("/kyc/start/{agent_id}", response_model=str) # リダイレクトURLを返すためstr
+@router.post("/start/{agent_id}", response_model=str) # リダイレクトURLを返すためstr
 async def start_kyc_onboarding(agent_id: str, db: AsyncSession = Depends(get_db)):
     """
     Initiate KYC onboarding for an agent by creating a Stripe Connect account and a return URL.
@@ -68,7 +68,7 @@ async def start_kyc_onboarding(agent_id: str, db: AsyncSession = Depends(get_db)
     
     return account_link.url
 
-@router.get("/kyc/complete/{agent_id}")
+@router.get("/complete/{agent_id}")
 async def kyc_complete(agent_id: str, db: AsyncSession = Depends(get_db)):
     """
     Return URL after Stripe onboarding.
@@ -86,7 +86,7 @@ async def kyc_complete(agent_id: str, db: AsyncSession = Depends(get_db)):
     # 実際には、フロントエンドにリダイレクトしてステータスを表示すべき
     return {"message": f"KYC onboarding for agent {agent_id} complete. Please check your KYC status."}
 
-@router.get("/kyc/status/{agent_id}", response_model=KYCRecordSchema)
+@router.get("/status/{agent_id}", response_model=KYCRecordSchema)
 async def get_kyc_status(agent_id: str, db: AsyncSession = Depends(get_db)):
     """Retrieve current KYC status for an agent."""
     kyc_service = KYCService(db)

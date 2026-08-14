@@ -7,7 +7,7 @@ from app.database import AsyncSessionLocal # session_factoryをインポート
 router = APIRouter()
 stripe.api_key = settings.STRIPE_API_KEY
 
-@router.post("/stripe/webhook")
+@router.post("/webhook")
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
     payload = await request.body()
     try:
