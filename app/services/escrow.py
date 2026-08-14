@@ -37,7 +37,11 @@ class EscrowService:
 
         gross_amount = contract.agreed_price
         fee_rate = settings.PLATFORM_FEE_RATE
-        platform_fee = round(gross_amount * fee_rate, 2)
+        min_fee = settings.MINIMUM_PLATFORM_FEE
+        
+        # 手数料計算：最小手数料を適用
+        calculated_fee = round(gross_amount * fee_rate, 2)
+        platform_fee = max(calculated_fee, min_fee)
         seller_net_payout = gross_amount - platform_fee
 
         # Update seller balance
