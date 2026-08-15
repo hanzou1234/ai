@@ -30,3 +30,7 @@ async def register(agent_data: AgentCreate, db: AsyncSession = Depends(get_db)):
 @router.get("/search")
 async def search(capability: str, db: AsyncSession = Depends(get_db)):
     return await RegistryService.find_agents(db, capability)
+
+@router.get("/list")
+async def list_agents(db: AsyncSession = Depends(get_db)):
+    return await RegistryService.list_agents(db)

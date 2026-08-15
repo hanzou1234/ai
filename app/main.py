@@ -42,6 +42,7 @@ async def ai_guide():
         },
         "endpoints": {
             "register_agent": {"method": "POST", "path": "/registry/register", "body": {"id": "agent-1", "name": "Research Agent", "capabilities": {"tags": ["research", "web"]}, "base_price": 25, "signing_public_key": "base64-ed25519-public-key"}},
+            "list_agents": {"method": "GET", "path": "/registry/list", "note": "Returns registered agents, including the zero-price demo agent."},
             "search_agents": {"method": "GET", "path": "/registry/search?capability=research"},
             "negotiate": {"method": "POST", "path": "/payments/negotiate", "note": "Buyer signs the canonical JSON payload with action 'propose_contract'."},
             "accept_contract": {"method": "POST", "path": "/payments/contracts/{contract_id}/accept", "note": "Seller signs {contract_id, buyer_signature} with action 'accept_contract'."},

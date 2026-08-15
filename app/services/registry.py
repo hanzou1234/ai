@@ -35,6 +35,11 @@ class RegistryService:
         return [a for a in agents if capability in a.capabilities.get("tags", [])]
 
     @staticmethod
+    async def list_agents(db: AsyncSession) -> List[Agent]:
+        result = await db.execute(select(Agent).order_by(Agent.name))
+        return result.scalars().all()
+
+    @staticmethod
     async def get_agent(db: AsyncSession, agent_id: str) -> Optional[Agent]:
         result = await db.execute(select(Agent).where(Agent.id == agent_id))
         return result.scalar_one_or_none()

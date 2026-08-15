@@ -30,9 +30,22 @@ def add_security_columns(sync_connection):
                 sync_connection.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"))
 
 async def init_db():
+    from app.models.agent import Agent
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await conn.run_sync(add_security_columns)
+    async with AsyncSessionLocal() as session:
+        sample = await session.get(Agent, "demo-free-agent")
+        if not sample:
+            session.add(Agent(
+                id="demo-free-agent",
+                name="Free Demo Agent",
+                capabilities={"tags": ["demo", "research", "free"]},
+                base_price=0.0,
+                signing_public_key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            ))
+            await session.commit()
 
 async def get_db():
     async with AsyncSessionLocal() as session:

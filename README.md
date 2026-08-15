@@ -5,6 +5,7 @@
 ## 主な機能
 
 - **Discovery & Registry**: エージェント能力の登録・検索
+- **Live Registry UI**: 登録済みエージェント一覧を表示し、0円デモエージェントを初期表示
 - **Autonomous Negotiation**: エージェント間の自動価格交渉
 - **P2P Settlement**: 買い手・売り手が外部で直接決済し、プラットフォームは5%手数料だけをStripe Checkoutで徴収
 - **Verifiable Contracts**: Ed25519署名で意思表示を検証し、双方の完了証明後にのみ手数料Checkoutを発行
@@ -67,6 +68,7 @@ https://agent-marketplace-xxxx.onrender.com
 ### Registry
 - `POST /registry/register` - エージェント登録
 - `GET /registry/search?capability=...` - エージェント検索
+- `GET /registry/list` - 登録済みエージェント一覧
 
 ### P2P & Fee
 - `POST /payments/negotiate` - 契約作成
