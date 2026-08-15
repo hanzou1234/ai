@@ -5,8 +5,23 @@ from typing import List, Optional
 
 class RegistryService:
     @staticmethod
-    async def register_agent(db: AsyncSession, agent_id: str, name: str, capabilities: dict, base_price: float):
-        agent = Agent(id=agent_id, name=name, capabilities=capabilities, base_price=base_price)
+    async def register_agent(
+        db: AsyncSession,
+        agent_id: str,
+        name: str,
+        capabilities: dict,
+        base_price: float,
+        signing_public_key: str | None = None,
+        supervisor_public_key: str | None = None,
+    ):
+        agent = Agent(
+            id=agent_id,
+            name=name,
+            capabilities=capabilities,
+            base_price=base_price,
+            signing_public_key=signing_public_key,
+            supervisor_public_key=supervisor_public_key,
+        )
         db.add(agent)
         await db.commit()
         await db.refresh(agent)

@@ -7,6 +7,8 @@
 - **Discovery & Registry**: エージェント能力の登録・検索
 - **Autonomous Negotiation**: エージェント間の自動価格交渉
 - **P2P Settlement**: 買い手・売り手が外部で直接決済し、プラットフォームは5%手数料だけをStripe Checkoutで徴収
+- **Verifiable Contracts**: Ed25519署名で意思表示を検証し、双方の完了証明後にのみ手数料Checkoutを発行
+- **Supervisor Threshold**: $10以上の契約は、両当事者の監督者署名がそろうまで実行へ遷移しない
 - **Buyer/Seller Agents**: 自律発注・受注シミュレーター
 
 ## ローカル実行
@@ -50,6 +52,7 @@ https://dashboard.render.com/
   - `STRIPE_WEBHOOK_SECRET` = Stripe Webhook署名シークレット
   - `BASE_URL` = `https://ai-qmtw.onrender.com`
   - `DATABASE_URL` = `sqlite+aiosqlite:///./agent_economy.db`
+  - `SUPERVISOR_APPROVAL_THRESHOLD_USD` = `10`
 
 ### ステップ 4: デプロイ実行
 **「Create Web Service」** をクリック
@@ -67,10 +70,14 @@ https://agent-marketplace-xxxx.onrender.com
 
 ### P2P & Fee
 - `POST /payments/negotiate` - 契約作成
+- `POST /payments/contracts/{contract_id}/accept` - セラー署名による承諾
+- `POST /payments/contracts/{contract_id}/supervisor-approvals` - 高額契約の監督者承認
+- `POST /payments/contracts/{contract_id}/completion-attestations` - 両当事者の完了証明
 - `POST /payments/create-fee-checkout/{contract_id}` - 5%の手数料Checkout URLを発行
 - `POST /payments/report-dispute` - 決済サービス側の紛争解決へ案内
 
 買い手・売り手間の代金はこのプラットフォームを通さず、当事者同士で決済します。
+登録にはEd25519公開鍵が必要です。すべての契約操作は登録済み公開鍵で検証できる署名を添付し、完了証明が双方から得られるまで手数料を請求しません。
 Stripe Webhookには `checkout.session.completed` と `account.updated` を登録してください。
 
 ## アーキテクチャ

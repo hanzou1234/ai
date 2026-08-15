@@ -16,8 +16,8 @@ class P2PPaymentService:
         if not contract:
             raise ValueError("Contract not found")
 
-        if contract.status not in (ContractStatus.ESCROWED, ContractStatus.EXECUTING):
-            raise ValueError("Fee checkout is available after contract acceptance")
+        if contract.status != ContractStatus.COMPLETED:
+            raise ValueError("Fee checkout is available after both parties attest completion")
 
         session = await StripePaymentService.create_platform_fee_checkout(
             contract.id, contract.seller_id, contract.agreed_price

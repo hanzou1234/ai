@@ -12,6 +12,18 @@ class NegotiationRequest(BaseModel):
     seller_id: str
     task: str
     offered_price: float
+    buyer_signature: str
+
+class ContractAcceptanceRequest(BaseModel):
+    seller_signature: str
+
+class SupervisorApprovalRequest(BaseModel):
+    agent_id: str
+    signature: str
+
+class CompletionAttestationRequest(BaseModel):
+    agent_id: str
+    signature: str
 
 class PaymentCompletionRequest(BaseModel):
     contract_id: str
@@ -23,9 +35,34 @@ class DisputeRequest(BaseModel):
 @router.post("/negotiate")
 async def negotiate(req: NegotiationRequest, db: AsyncSession = Depends(get_db)):
     """ネゴシエーション・契約作成"""
-    contract = await NegotiationService.propose_contract(db, req.buyer_id, req.seller_id, req.task, req.offered_price)
-    await NegotiationService.accept_proposal(db, contract.id)
+    try:
+        contract = await NegotiationService.propose_contract(
+            db, req.buyer_id, req.seller_id, req.task, req.offered_price, req.buyer_signature
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
     return contract
+
+@router.post("/contracts/{contract_id}/accept")
+async def accept_contract(contract_id: str, req: ContractAcceptanceRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        return await NegotiationService.accept_proposal(db, contract_id, req.seller_signature)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+@router.post("/contracts/{contract_id}/supervisor-approvals")
+async def approve_contract(contract_id: str, req: SupervisorApprovalRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        return await NegotiationService.approve_by_supervisor(db, contract_id, req.agent_id, req.signature)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+@router.post("/contracts/{contract_id}/completion-attestations")
+async def attest_completion(contract_id: str, req: CompletionAttestationRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        return await NegotiationService.attest_completion(db, contract_id, req.agent_id, req.signature)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
 @router.post("/create-fee-checkout/{contract_id}")
 @router.post("/create-payment-link/{contract_id}", include_in_schema=False)

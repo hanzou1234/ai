@@ -10,3 +10,5 @@ class Agent(Base):
     base_price = Column(Float, default=10.0)
     wallet_balance = Column(Float, default=0.0)
     rating = Column(Float, default=5.0)
+    signing_public_key = Column(String, nullable=True)
+    supervisor_public_key = Column(String, nullable=True)

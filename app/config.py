@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./agent_economy.db"
     PLATFORM_FEE_RATE: float = 0.05
     MINIMUM_PLATFORM_FEE: float = 1.0  # 最低手数料 $1
+    SUPERVISOR_APPROVAL_THRESHOLD_USD: float = 10.0
     LOG_LEVEL: str = "INFO"
     BASE_URL: str = "https://ai-qmtw.onrender.com"
 
