@@ -52,6 +52,11 @@ async def ai_guide():
         "docs": "/docs"
     }
 
+@app.get("/disclaimer")
+async def disclaimer_page():
+    """取引に関する免責事項ページ。"""
+    return FileResponse(WEB_ROOT / "disclaimer.html")
+
 @app.get("/skill.md", include_in_schema=False)
 async def skill_guide():
     return FileResponse(WEB_ROOT / "skill.md", media_type="text/markdown")
