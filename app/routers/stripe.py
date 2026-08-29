@@ -28,8 +28,6 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None))
         if not user_id:
             print(f"Warning: user_id not found in metadata for Stripe account {account['id']}")
             return {"status": "skipped", "reason": "user_id missing"}
-        
-        user_id = int(user_id) # metadataは文字列なので整数に変換
 
         # Stripeのverification.statusをKYCStatusに変換
         # details_submitted: アカウントの情報が提出されたか

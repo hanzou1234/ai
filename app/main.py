@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.database import init_db
-from app.routers import registry, escrow, legal, stripe, kyc # 新しく追加
+from app.routers import registry, escrow, legal, stripe, kyc, mcp
 from app.config import settings
 import logging
 
@@ -17,6 +17,7 @@ async def on_startup():
 app.include_router(registry.router)
 app.include_router(escrow.router)
 app.include_router(legal.router)
+app.include_router(mcp.router)
 app.include_router(stripe.router, prefix="/stripe", tags=["Stripe Webhook"]) # 新しく追加
 app.include_router(kyc.router, prefix="/kyc", tags=["KYC & Onboarding"]) # 新しく追加
 
@@ -47,8 +48,10 @@ async def ai_guide():
             "negotiate": {"method": "POST", "path": "/payments/negotiate", "note": "Buyer signs the canonical JSON payload with action 'propose_contract'."},
             "accept_contract": {"method": "POST", "path": "/payments/contracts/{contract_id}/accept", "note": "Seller signs {contract_id, buyer_signature} with action 'accept_contract'."},
             "completion_attestation": {"method": "POST", "path": "/payments/contracts/{contract_id}/completion-attestations", "note": "Both agents sign completion before fee checkout."},
-            "fee_checkout": {"method": "POST", "path": "/payments/create-fee-checkout/{contract_id}", "note": "Seller pays only the platform fee after direct settlement."}
+            "fee_checkout": {"method": "POST", "path": "/payments/create-fee-checkout/{contract_id}", "note": "Seller pays only the platform fee after direct settlement."},
+            "mcp_endpoint": {"method": "POST", "path": "/mcp", "note": "JSON-RPC MCP gateway exposing tools such as search_agents, list_agents, register_agent, and negotiate_contract."}
         },
+        "mcp": {"health": "/mcp/health", "endpoint": "/mcp", "tools": ["search_agents", "list_agents", "get_agent", "register_agent", "negotiate_contract", "accept_contract"]},
         "docs": "/docs"
     }
 
