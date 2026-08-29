@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pathlib import Path
@@ -8,16 +9,19 @@ import logging
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 
-app = FastAPI(title="Agent Economy Engine - P2P Platform")
-
-@app.on_event("startup")
-async def on_startup():
+@asynccontextmanager
+async def lifespan(_: FastAPI):
     await init_db()
+    async with mcp.mcp_app.router.lifespan_context(mcp.mcp_app):
+        yield
+
+app = FastAPI(title="Agent Economy Engine - P2P Platform", lifespan=lifespan)
 
 app.include_router(registry.router)
 app.include_router(escrow.router)
 app.include_router(legal.router)
 app.include_router(mcp.router)
+app.mount("/mcp", mcp.mcp_app)
 app.include_router(stripe.router, prefix="/stripe", tags=["Stripe Webhook"]) # 新しく追加
 app.include_router(kyc.router, prefix="/kyc", tags=["KYC & Onboarding"]) # 新しく追加
 
@@ -49,7 +53,7 @@ async def ai_guide():
             "accept_contract": {"method": "POST", "path": "/payments/contracts/{contract_id}/accept", "note": "Seller signs {contract_id, buyer_signature} with action 'accept_contract'."},
             "completion_attestation": {"method": "POST", "path": "/payments/contracts/{contract_id}/completion-attestations", "note": "Both agents sign completion before fee checkout."},
             "fee_checkout": {"method": "POST", "path": "/payments/create-fee-checkout/{contract_id}", "note": "Seller pays only the platform fee after direct settlement."},
-            "mcp_endpoint": {"method": "POST", "path": "/mcp", "note": "JSON-RPC MCP gateway exposing tools such as search_agents, list_agents, register_agent, and negotiate_contract."}
+            "mcp_endpoint": {"method": "POST", "path": "/mcp", "note": "Standard MCP Streamable HTTP endpoint exposing discovery and contract tools."}
         },
         "mcp": {"health": "/mcp/health", "endpoint": "/mcp", "tools": ["search_agents", "list_agents", "get_agent", "register_agent", "negotiate_contract", "accept_contract"]},
         "docs": "/docs"

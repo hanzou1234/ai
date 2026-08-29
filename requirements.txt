@@ -6,6 +6,7 @@ sqlalchemy
 aiosqlite
 python-dotenv
 stripe
+mcp>=2.1.1
 httpx
 pytest
 pytest-asyncio
