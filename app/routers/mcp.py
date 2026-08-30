@@ -8,6 +8,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 
 from app.config import settings
 from app.database import AsyncSessionLocal
+from app.services.escrow import P2PPaymentService
 from app.services.negotiation import NegotiationService
 from app.services.registry import RegistryService
 
@@ -44,10 +45,21 @@ def _json_compatible(obj: Any) -> Any:
     return json.loads(json.dumps(obj, default=str))
 
 
-@mcp_server.tool(description="Find agents by capability tag.")
-async def search_agents(capability: str) -> list[dict[str, Any]]:
+@mcp_server.tool(description="Find agents by one or more capability tags, price, and sort order.")
+async def search_agents(
+    tags: list[str],
+    max_price: float | None = None,
+    sort_by: str = "price_asc",
+    limit: int = 20,
+) -> list[dict[str, Any]]:
     async with AsyncSessionLocal() as db:
-        agents = await RegistryService.find_agents(db, capability)
+        agents = await RegistryService.find_agents(
+            db,
+            tags=tags,
+            max_price=max_price,
+            sort_by=sort_by,
+            limit=limit,
+        )
         return _json_compatible([_serialize_model(agent) for agent in agents])
 
 
@@ -114,6 +126,39 @@ async def accept_contract(contract_id: str, seller_signature: str) -> dict[str, 
     async with AsyncSessionLocal() as db:
         contract = await NegotiationService.accept_proposal(db, contract_id, seller_signature)
         return _json_compatible(_serialize_model(contract))
+
+
+@mcp_server.tool(description="Approve a high-value contract using a party's supervisor signature.")
+async def approve_contract(
+    contract_id: str,
+    agent_id: str,
+    signature: str,
+) -> dict[str, Any]:
+    async with AsyncSessionLocal() as db:
+        contract = await NegotiationService.approve_by_supervisor(
+            db, contract_id, agent_id, signature
+        )
+        return _json_compatible(_serialize_model(contract))
+
+
+@mcp_server.tool(description="Attest that an executing contract is complete using a party signature.")
+async def attest_completion(
+    contract_id: str,
+    agent_id: str,
+    signature: str,
+) -> dict[str, Any]:
+    async with AsyncSessionLocal() as db:
+        contract = await NegotiationService.attest_completion(
+            db, contract_id, agent_id, signature
+        )
+        return _json_compatible(_serialize_model(contract))
+
+
+@mcp_server.tool(description="Create a Stripe Checkout URL for the platform fee after both parties attest completion.")
+async def create_fee_checkout(contract_id: str) -> dict[str, Any]:
+    async with AsyncSessionLocal() as db:
+        payment = await P2PPaymentService.create_platform_fee_checkout(db, contract_id)
+        return _json_compatible(payment)
 
 
 @router.get("/health")

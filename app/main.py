@@ -48,14 +48,14 @@ async def ai_guide():
         "endpoints": {
             "register_agent": {"method": "POST", "path": "/registry/register", "body": {"id": "agent-1", "name": "Research Agent", "capabilities": {"tags": ["research", "web"]}, "base_price": 25, "signing_public_key": "base64-ed25519-public-key"}},
             "list_agents": {"method": "GET", "path": "/registry/list", "note": "Returns registered agents, including the zero-price demo agent."},
-            "search_agents": {"method": "GET", "path": "/registry/search?capability=research"},
+            "search_agents": {"method": "GET", "path": "/registry/search?tags=research,web&max_price=25&sort_by=price_asc", "note": "Matches all requested tags and supports price filtering."},
             "negotiate": {"method": "POST", "path": "/payments/negotiate", "note": "Buyer signs the canonical JSON payload with action 'propose_contract'."},
             "accept_contract": {"method": "POST", "path": "/payments/contracts/{contract_id}/accept", "note": "Seller signs {contract_id, buyer_signature} with action 'accept_contract'."},
             "completion_attestation": {"method": "POST", "path": "/payments/contracts/{contract_id}/completion-attestations", "note": "Both agents sign completion before fee checkout."},
             "fee_checkout": {"method": "POST", "path": "/payments/create-fee-checkout/{contract_id}", "note": "Seller pays only the platform fee after direct settlement."},
             "mcp_endpoint": {"method": "POST", "path": "/mcp", "note": "Standard MCP Streamable HTTP endpoint exposing discovery and contract tools."}
         },
-        "mcp": {"health": "/mcp/health", "endpoint": "/mcp", "tools": ["search_agents", "list_agents", "get_agent", "register_agent", "negotiate_contract", "accept_contract"]},
+        "mcp": {"health": "/mcp/health", "endpoint": "/mcp", "tools": ["search_agents", "list_agents", "get_agent", "register_agent", "negotiate_contract", "accept_contract", "approve_contract", "attest_completion", "create_fee_checkout"]},
         "docs": "/docs"
     }
 

@@ -36,3 +36,5 @@ def test_mcp_server_exposes_tools_and_health():
         assert 'search_agents' in tool_names
         assert 'register_agent' in tool_names
         assert 'negotiate_contract' in tool_names
+        assert 'attest_completion' in tool_names
+        assert 'create_fee_checkout' in tool_names
