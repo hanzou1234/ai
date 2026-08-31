@@ -1,58 +1,58 @@
 # P2P Payment Flow Documentation
 
-## アーキテクチャ変更：エスクロー型 → P2P直接決済型
+## Architecture change: escrow model → direct P2P settlement
 
-### 旧仕組み（エスクロー型）
+### Old model (escrow-based)
 ```
-バイヤー $100
+Buyer $100
     ↓
-[プラットフォーム エスクロー]  ← リスク負担
+[Platform escrow]  ← risk borne by platform
     ↓
-セラー $95 + プラットフォーム $5手数料
+Seller $95 + platform fee $5
 ```
 
-**問題点：** プラットフォームが資金管理責任を負う、チャージバック・不払いリスク
+**Problem:** the platform assumes custody and operational responsibility for funds, creating chargeback and non-payment risk.
 
 ---
 
-### 新仕組み（P2P直接決済型）✅
+### New model (direct P2P settlement) ✅
 ```
-1. 契約作成
-   バイヤー ↔ セラー（金額・条件に同意）
+1. Contract creation
+   Buyer ↔ Seller (agree on amount and conditions)
 
-2. 支払いリンク生成
+2. Payment link generation
    /payments/create-payment-link/{contract_id}
-   → Stripe Payment Link / PayPal Invoice を返却
+   → returns a Stripe Payment Link / PayPal Invoice
 
-3. バイヤーがセラーに直接支払い
-   バイヤー → [Stripe / PayPal / Solana] → セラー
-   （プラットフォームを経由しない）
+3. Buyer pays the seller directly
+   Buyer → [Stripe / PayPal / Solana] → Seller
+   (without routing funds through the platform)
 
-4. 支払い完了報告
+4. Payment completion report
    /payments/complete-payment
-   → プラットフォームがセラーのウォレットから手数料を自動徴収
+   → the platform automatically collects the fee from the seller wallet
 
-5. 取引完了
-   セラーはウォレットから手数料を支払うだけ
+5. Transaction complete
+   The seller only pays the platform fee from the wallet balance
 ```
 
 ---
 
-## リスク分散
+## Risk allocation
 
-| リスク | 責任 |
-|--------|------|
-| チャージバック | バイヤー・セラー（Stripe/PayPalの紛争解決機能） |
-| 不払い | セラー（Stripeの支払い完了確認後に取引をロック） |
-| プラットフォーム破産 | なし（手数料だけ徴収） |
+| Risk | Responsibility |
+|------|---------------|
+| Chargebacks | Buyer and seller (via Stripe/PayPal dispute mechanisms) |
+| Non-payment | Seller (transaction is locked after payment confirmation by Stripe) |
+| Platform insolvency | None (platform collects only fees) |
 
-**プラットフォームのリスク = ほぼゼロ** ✅
+**Platform risk = nearly zero** ✅
 
 ---
 
-## API フロー
+## API flow
 
-### 1. ネゴシエーション
+### 1. Negotiation
 ```bash
 POST /payments/negotiate
 {
@@ -63,16 +63,16 @@ POST /payments/negotiate
 }
 ```
 
-**応答：** 契約ID取得
+**Response:** contract ID is returned.
 
 ---
 
-### 2. 支払いリンク生成
+### 2. Payment link generation
 ```bash
 GET /payments/create-payment-link/{contract_id}
 ```
 
-**応答：** バイヤー向けの支払いリンク
+**Response:** buyer-facing payment link
 ```json
 {
   "payment_link": {
@@ -81,13 +81,13 @@ GET /payments/create-payment-link/{contract_id}
     "amount": 100.0,
     "currency": "USD"
   },
-  "message": "バイヤーはセラーに直接支払ってください"
+  "message": "The buyer should pay the seller directly"
 }
 ```
 
 ---
 
-### 3. 支払い完了（セラーがAPI呼び出し）
+### 3. Payment completed (seller calls the API)
 ```bash
 POST /payments/complete-payment
 {
@@ -95,12 +95,12 @@ POST /payments/complete-payment
 }
 ```
 
-**処理内容：**
-- Stripe/PayPalから支払い完了を確認
-- セラーのウォレットから手数料を自動徴収
-- 取引をCOMPLETEDにマーク
+**Processing:**
+- confirm payment completion from Stripe/PayPal
+- automatically collect the platform fee from the seller wallet
+- mark the transaction as COMPLETED
 
-**応答：**
+**Response:**
 ```json
 {
   "message": "Payment completed and platform fee collected",
@@ -109,7 +109,7 @@ POST /payments/complete-payment
     "contract_id": "...",
     "gross_amount": 100.0,
     "platform_fee": 5.0,
-    "seller_net_payout": 0.0,  ← P2Pなので0（セラーは直接受け取り）
+    "seller_net_payout": 0.0,  // P2P means 0 because the seller is paid directly
     "type": "PLATFORM_FEE"
   }
 }
@@ -117,7 +117,7 @@ POST /payments/complete-payment
 
 ---
 
-### 4. 紛争報告（オプション）
+### 4. Dispute reporting (optional)
 ```bash
 POST /payments/report-dispute
 {
@@ -126,43 +126,43 @@ POST /payments/report-dispute
 }
 ```
 
-**処理内容：**
-- プラットフォームは取引を FAILED にマーク
-- バイヤー・セラーは Stripe/PayPal の紛争解決機能を使用
+**Processing:**
+- the platform marks the transaction as FAILED
+- buyer and seller handle dispute resolution through Stripe/PayPal mechanisms
 
 ---
 
-## セラーの手数料支払い方法
+## Seller fee payment methods
 
-### 方法1：ウォレットから自動徴収（現在の実装）
+### Method 1: automatic deduction from wallet (current implementation)
 ```
-セラーのウォレット残高 -= platform_fee
+Seller wallet balance -= platform_fee
 ```
 
-### 方法2：クレジットカードから定期徴収（推奨）
+### Method 2: recurring charge from credit card (recommended)
 ```python
-# 月1回、セラーのクレジットカードから手数料まとめて徴収
+# Charge the seller's credit card once per month for cumulative fees
 async def charge_monthly_fees():
-    # 先月の全取引から手数料を計算
-    # セラーのクレジットカードに課金
+    # calculate total fees from all transactions in the previous month
+    # charge the seller's credit card
     pass
 ```
 
 ---
 
-## 本番化のチェックリスト
+## Production readiness checklist
 
-- [ ] Stripe Connect / PayPal Commerce Platform を統合
-- [ ] 支払い完了の自動確認 webhook 実装
-- [ ] セラー・バイヤーの KYC（本人確認）実装
-- [ ] 手数料の月次レポート機能
-- [ ] 紛争管理ダッシュボード
-- [ ] PCI-DSS コンプライアンス確認
+- [ ] Integrate Stripe Connect / PayPal Commerce Platform
+- [ ] Implement automatic payment confirmation webhooks
+- [ ] Implement KYC for buyers and sellers
+- [ ] Add monthly fee reporting
+- [ ] Add a dispute management dashboard
+- [ ] Confirm PCI-DSS compliance
 
 ---
 
-## まとめ
+## Summary
 
-✅ **プラットフォームは手数料だけもらう仕組みに完全変更**
-✅ **チャージバック・不払いのリスクはセラー・バイヤーが負担**
-✅ **プラットフォームの責任最小化 = ビジネスリスク低減**
+✅ **The platform has been redesigned to collect only a transaction fee**
+✅ **Chargeback and non-payment risk is borne by buyer and seller**
+✅ **Minimizing platform responsibility = lower business risk**
