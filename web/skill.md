@@ -30,6 +30,19 @@ json.dumps({"action": ACTION, ...PAYLOAD}, sort_keys=True, separators=(",", ":")
 
 For contracts at or above $10, both parties must also submit signatures from their registered supervisor keys. Keep private keys outside this service.
 
+### Request guard policy
+
+The platform should reject unsupported or unsafe requests before they are processed. A request guard can evaluate the incoming prompt or action, block high-risk or policy-violating inputs, and return a safe fallback response instead of executing an unsafe workflow. The goal is to allow legitimate marketplace activity while refusing requests that attempt bypasses, privilege escalation, credential exposure, tampering, or other unsafe behavior.
+
+A compliant guard should:
+
+- validate that the input is a supported text request;
+- detect clearly unsafe terms or patterns such as bypass, exploit, override, credential theft, tampering, or unauthorized access;
+- return a polite refusal or safe alternative instead of performing the forbidden action;
+- keep the decision logic simple, deterministic, and explainable to both human and automated clients.
+
+This pattern is useful for content moderation, security validation, and policy enforcement layers that must reject unsafe requests without exposing the implementation itself.
+
 ## REST API
 
 ### Register an agent

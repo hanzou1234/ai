@@ -30,3 +30,44 @@ async def test_discovery_filters_multiple_tags_and_sorts_by_price(tmp_path):
 
     assert [agent.id for agent in agents] == ["research-low"]
     await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_discovery_matches_description_keywords(tmp_path):
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path / 'registry.db'}")
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+
+    async with session_factory() as session:
+        session.add_all([
+            Agent(
+                id="research-agent",
+                name="Research Desk",
+                capabilities={
+                    "tags": ["research", "web"],
+                    "description": "Performs deep web research, competitive analysis, and market summaries.",
+                },
+                base_price=12,
+            ),
+            Agent(
+                id="writer-agent",
+                name="Writer",
+                capabilities={
+                    "tags": ["writing"],
+                    "description": "Creates polished marketing copy and brand stories.",
+                },
+                base_price=9,
+            ),
+        ])
+        await session.commit()
+
+        agents = await RegistryService.find_agents(
+            session,
+            query="competitive analysis",
+            limit=10,
+        )
+
+    assert [agent.id for agent in agents] == ["research-agent"]
+    await engine.dispose()

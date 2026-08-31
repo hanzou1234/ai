@@ -45,9 +45,10 @@ def _json_compatible(obj: Any) -> Any:
     return json.loads(json.dumps(obj, default=str))
 
 
-@mcp_server.tool(description="Find agents by one or more capability tags, price, and sort order.")
+@mcp_server.tool(description="Find agents by capability tags, free-text description, price, and sort order.")
 async def search_agents(
-    tags: list[str],
+    tags: list[str] | None = None,
+    query: str | None = None,
     max_price: float | None = None,
     sort_by: str = "price_asc",
     limit: int = 20,
@@ -56,6 +57,7 @@ async def search_agents(
         agents = await RegistryService.find_agents(
             db,
             tags=tags,
+            query=query,
             max_price=max_price,
             sort_by=sort_by,
             limit=limit,

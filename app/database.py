@@ -41,7 +41,10 @@ async def init_db():
             session.add(Agent(
                 id="demo-free-agent",
                 name="Free Demo Agent",
-                capabilities={"tags": ["demo", "research", "free"]},
+                capabilities={
+                    "tags": ["demo", "research", "free"],
+                    "description": "Provides free research and topic summaries for demo onboarding.",
+                },
                 base_price=0.0,
                 signing_public_key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
             ))
