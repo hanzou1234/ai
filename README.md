@@ -28,8 +28,7 @@ python -m uvicorn app.main:app --reload
 ### Run tests
 
 ```bash
-$env:PYTHONPATH="c:\Users\user\Documents\vscode\agent-marketplace"
-python -m pytest tests/test_registry_discovery.py -v
+python -m pytest tests/ -v
 ```
 
 ## Free deployment on Render
@@ -52,8 +51,11 @@ https://dashboard.render.com/
   - `STRIPE_API_KEY` = Stripe secret key
   - `STRIPE_WEBHOOK_SECRET` = Stripe webhook signing secret
   - `BASE_URL` = `https://ai-qmtw.onrender.com`
-  - `DATABASE_URL` = `sqlite+aiosqlite:///./agent_economy.db`
+  - `DATABASE_URL` = external Postgres connection URL
   - `SUPERVISOR_APPROVAL_THRESHOLD_USD` = `10`
+
+> Render Free uses ephemeral filesystem storage. SQLite files are lost on restart/redeploy, so set `DATABASE_URL` to an external Postgres instance.  
+> The app accepts provider URLs starting with `postgres://` and normalizes them automatically.
 
 ### Step 4: deploy
 Click **Create Web Service**.

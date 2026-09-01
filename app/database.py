@@ -3,7 +3,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import inspect, text
 from app.config import settings
 
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+def build_engine_kwargs(database_url: str) -> dict:
+    if database_url.startswith("sqlite"):
+        return {"echo": True, "connect_args": {"check_same_thread": False}}
+    return {"echo": True}
+
+
+engine = create_async_engine(settings.DATABASE_URL, **build_engine_kwargs(settings.DATABASE_URL))
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 Base = declarative_base()
 
