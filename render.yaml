@@ -8,6 +8,6 @@ services:
       - key: PLATFORM_FEE_RATE
         value: "0.05"
       - key: DATABASE_URL
-        value: "sqlite+aiosqlite:///./agent_economy.db"
+        sync: false
       - key: LOG_LEVEL
         value: "INFO"
