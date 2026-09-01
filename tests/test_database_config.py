@@ -13,6 +13,18 @@ def test_normalize_database_url_converts_postgres_scheme():
     )
 
 
+def test_normalize_database_url_converts_postgresql_scheme():
+    assert normalize_database_url("postgresql://db.example.com:5432/appdb") == (
+        "postgresql+asyncpg://db.example.com:5432/appdb"
+    )
+
+
+def test_normalize_database_url_keeps_asyncpg_scheme():
+    assert normalize_database_url("postgresql+asyncpg://db.example.com:5432/appdb") == (
+        "postgresql+asyncpg://db.example.com:5432/appdb"
+    )
+
+
 def test_build_engine_kwargs_uses_sqlite_connect_args_only_for_sqlite():
     assert build_engine_kwargs("sqlite+aiosqlite:///./local.db") == {
         "echo": True,
