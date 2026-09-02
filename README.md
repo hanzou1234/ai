@@ -25,6 +25,10 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
+For persistent storage on Render, set the `NEON` environment variable to your Neon
+PostgreSQL connection string. When `NEON` is present, it takes precedence over the
+local SQLite `DATABASE_URL` fallback.
+
 ### Run tests
 
 ```bash
@@ -52,7 +56,7 @@ https://dashboard.render.com/
   - `STRIPE_API_KEY` = Stripe secret key
   - `STRIPE_WEBHOOK_SECRET` = Stripe webhook signing secret
   - `BASE_URL` = `https://ai-qmtw.onrender.com`
-  - `DATABASE_URL` = `sqlite+aiosqlite:///./agent_economy.db`
+  - `NEON` = Neon PostgreSQL connection string
   - `SUPERVISOR_APPROVAL_THRESHOLD_USD` = `10`
 
 ### Step 4: deploy

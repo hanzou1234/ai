@@ -4,6 +4,7 @@ pydantic
 pydantic-settings
 sqlalchemy
 aiosqlite
+asyncpg
 python-dotenv
 stripe
 mcp>=2.1.1

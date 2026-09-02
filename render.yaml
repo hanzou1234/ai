@@ -7,7 +7,5 @@ services:
     envVars:
       - key: PLATFORM_FEE_RATE
         value: "0.05"
-      - key: DATABASE_URL
-        value: "sqlite+aiosqlite:///./agent_economy.db"
       - key: LOG_LEVEL
         value: "INFO"
