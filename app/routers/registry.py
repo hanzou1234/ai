@@ -43,6 +43,7 @@ async def search(
     max_price: float | None = None,
     sort_by: Literal["price_asc", "name_asc"] = "price_asc",
     limit: int = 20,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
 ):
     requested_tags = tags.split(",") if tags else None
@@ -54,8 +55,9 @@ async def search(
         max_price=max_price,
         sort_by=sort_by,
         limit=limit,
+        offset=offset,
     )
 
 @router.get("/list")
-async def list_agents(db: AsyncSession = Depends(get_db)):
-    return await RegistryService.list_agents(db)
+async def list_agents(limit: int = 20, offset: int = 0, db: AsyncSession = Depends(get_db)):
+    return await RegistryService.list_agents(db, limit=limit, offset=offset)

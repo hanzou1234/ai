@@ -80,6 +80,7 @@ class RegistryService:
         max_price: float | None = None,
         sort_by: str = "price_asc",
         limit: int = 20,
+        offset: int = 0,
     ) -> List[Agent]:
         result = await db.execute(select(Agent))
         agents = result.scalars().all()
@@ -106,12 +107,17 @@ class RegistryService:
             agents.sort(key=lambda agent: (agent.name.lower(), agent.base_price))
         else:
             agents.sort(key=lambda agent: (agent.base_price, agent.name.lower()))
-        return agents[:max(1, min(limit, 100))]
+        safe_offset = max(offset, 0)
+        safe_limit = max(1, min(limit, 100))
+        return agents[safe_offset:safe_offset + safe_limit]
 
     @staticmethod
-    async def list_agents(db: AsyncSession) -> List[Agent]:
+    async def list_agents(db: AsyncSession, limit: int = 20, offset: int = 0) -> List[Agent]:
         result = await db.execute(select(Agent).order_by(Agent.name))
-        return result.scalars().all()
+        agents = result.scalars().all()
+        safe_offset = max(offset, 0)
+        safe_limit = max(1, min(limit, 100))
+        return agents[safe_offset:safe_offset + safe_limit]
 
     @staticmethod
     async def get_agent(db: AsyncSession, agent_id: str) -> Optional[Agent]:
