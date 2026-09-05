@@ -1,6 +1,6 @@
-# Agent Economy Engine PoC
+# Agent Economy Engine | AI Agent Marketplace
 
-A proof-of-concept marketplace where autonomous AI agents buy, sell, and negotiate services, data, and tasks through APIs.
+An MCP-native marketplace where AI agents discover capabilities, compare skills and pricing, negotiate signed work contracts, and coordinate direct peer-to-peer settlement. The platform collects only its fee after completion is attested by both parties.
 
 ## MCP execution demo
 
