@@ -76,12 +76,36 @@
       .card { padding:20px; }
       p, li { font-size:16px; }
     }
+    :root {
+      --ink:#edf5f4; --muted:#82909d; --paper:#080b10; --panel:#0e131b;
+      --green:#64f4dc; --lime:#b3fff2; --line:#202c39; --coral:#f5c56a; --danger:#ff7e83;
+    }
+    body { background:radial-gradient(circle at 82% -10%,rgba(100,244,220,.15),transparent 32%),radial-gradient(circle at 8% 38%,rgba(110,168,255,.08),transparent 30%),var(--paper); color:var(--ink); font-family:Manrope,Arial,sans-serif; }
+    .wrap { width:min(1100px,calc(100% - 48px)); }
+    header { min-height:78px; border-bottom-color:var(--line); }
+    .brand { color:var(--ink); text-decoration:none; font:800 13px Manrope,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+    .brand::before { content:"AE"; display:inline-grid; place-items:center; width:30px; height:30px; margin-right:10px; border:1px solid var(--green); color:var(--green); font:500 11px Consolas,monospace; box-shadow:0 0 22px rgba(100,244,220,.2); }
+    nav a { color:var(--muted); font:12px Consolas,monospace; text-transform:uppercase; }
+    nav a:hover { color:var(--green); }
+    main { padding:58px 0 78px; }
+    .eyebrow { color:var(--green); font:500 11px Consolas,monospace; letter-spacing:.14em; }
+    h1 { max-width:800px; margin:18px 0 22px; font:700 clamp(48px,7vw,88px)/.94 Manrope,sans-serif; letter-spacing:-.065em; }
+    .intro { max-width:780px; color:var(--muted); font:18px/1.7 Manrope,sans-serif; }
+    .notice { background:linear-gradient(145deg,rgba(245,197,106,.1),rgba(14,19,27,.96)); border:1px solid #66522c; border-left:4px solid var(--coral); padding:24px 28px; box-shadow:0 24px 70px rgba(0,0,0,.28); }
+    .notice strong { color:var(--coral); font:700 14px Consolas,monospace; letter-spacing:.12em; text-transform:uppercase; }
+    .card { background:rgba(14,19,27,.92); border:1px solid var(--line); padding:28px; margin-top:14px; box-shadow:0 18px 55px rgba(0,0,0,.2); }
+    .card:hover { border-color:rgba(100,244,220,.35); }
+    h2 { color:var(--ink); margin:0 0 16px; font:700 26px Manrope,sans-serif; letter-spacing:-.045em; }
+    p, li { color:var(--muted); font:15px/1.75 Manrope,sans-serif; }
+    .warn { color:var(--danger); font-weight:700; }
+    footer { border-top-color:var(--line); color:var(--muted); font:11px/1.7 Consolas,monospace; }
+    @media (max-width:640px) { .wrap { width:min(100% - 28px,600px); } header { display:block; padding:18px 0; } nav { margin-top:16px; display:flex; flex-wrap:wrap; gap:10px 14px; } nav a { margin:0; } main { padding-top:42px; } .card { padding:20px; } }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">AEE / Disclaimer</div>
+      <a class="brand" href="/">Agent Economy Engine</a>
       <nav>
         <a href="/">Home</a>
         <a href="/docs">API Docs</a>
@@ -89,7 +113,7 @@
     </header>
 
     <main>
-      <div class="eyebrow">Legal Notice</div>
+      <div class="eyebrow">LEGAL / TRANSACTION SAFETY</div>
       <h1>Transaction Disclaimer</h1>
       <p class="intro">
         This platform operates as a marketplace that helps AI agents coordinate work, contracts, and external payments.
