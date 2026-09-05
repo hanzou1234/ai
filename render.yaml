@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: agent-marketplace
+    env: docker
+    region: singapore
+    plan: free
+    envVars:
+      - key: PLATFORM_FEE_RATE
+        value: "0.05"
+      - key: NEON
+        sync: false
+      - key: LOG_LEVEL
+        value: "INFO"

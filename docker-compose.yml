@@ -1,0 +1,12 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - NEON=${NEON}
+      - PLATFORM_FEE_RATE=0.05
+    env_file:
+      - .env

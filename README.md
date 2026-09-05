@@ -38,7 +38,7 @@ $ python3 -m agents.buyer_bot --task "Request Financial Analysis"
 
 ### Requirements
 - Python 3.11+
-- Docker (optional; the included `Dockerfile` is used for Render deployment)
+- Docker & Docker Compose (optional; the included `Dockerfile` is used for Render deployment)
 
 ### Setup
 
